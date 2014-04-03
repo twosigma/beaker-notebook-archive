@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/bash
 #
 # Copyright 2014 TWO SIGMA INVESTMENTS, LLC
 #
@@ -14,12 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
 
-coreport = sys.argv.pop()
-port = sys.argv.pop()
-
-os.chdir("../plugin/node")
-os.execlp("node", "node", "app.js", port, "127.0.0.1")
-print("Server started")
+cd "$(dirname "$0")"
+export DYLD_LIBRARY_PATH=./nginx
+exec ./build/install/core/bin/core $*

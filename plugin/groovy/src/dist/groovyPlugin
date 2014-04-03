@@ -17,19 +17,12 @@
 import os
 import sys
 
-#BEAKER_IPYTHON=ipython
-
-#while [ -n "$1" ]
-#do
-#    case "$1" in
-#        --path*) BEAKER_IPYTHON="${1#??????}"; shift;;
-#        *) break;;
-#    esac
-#done
-
 coreport = sys.argv.pop()
 port = sys.argv.pop()
-print("port=" + port)
+print("Groovy port=" + port)
+#skip for now
+#os.environ['GROOVY_OPTS'] = ' '.join(sys.argv)
 
-os.execlp("ipython", "ipython", "notebook", "--pylab", "inline", "--NotebookApp.ip=127.0.0.1", "--NotebookApp.port=" + port, "--NotebookApp.open_browser=False")
-
+os.chdir("config\\plugins\\eval\\groovy")
+cmd = "bin\\groovy.bat"
+os.execl(cmd, cmd, port)

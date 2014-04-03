@@ -19,10 +19,9 @@ import sys
 
 coreport = sys.argv.pop()
 port = sys.argv.pop()
+print("coreport=" + coreport)
 print("port=" + port)
-#skip for now
-#os.environ['GROOVY_OPTS'] = ' '.join(sys.argv)
 
-os.chdir("..\\plugin\\groovy")
-cmd = "build\\install\\groovy\\bin\\groovy.bat"
-os.execl(cmd, cmd, port)
+os.chdir("config\\plugins\\eval\\r")
+cmd = "bin\\r.bat"
+os.execl(cmd, cmd, port, coreport)

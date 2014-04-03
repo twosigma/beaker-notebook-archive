@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python
 #
 # Copyright 2014 TWO SIGMA INVESTMENTS, LLC
 #
@@ -17,12 +17,12 @@
 import os
 import sys
 
-#BEAKER_IRUBY=iruby
+#BEAKER_JULIA=ipython
 
 #while [ -n "$1" ]
 #do
 #    case "$1" in
-#        --path*) BEAKER_IRUBY="${1#??????}"; shift;;
+#        --path*) BEAKER_JULIA="${1#??????}"; shift;;
 #        *) break;;
 #    esac
 #done
@@ -30,4 +30,4 @@ import sys
 coreport = sys.argv.pop()
 port = sys.argv.pop()
 
-os.execlp("iruby", "iruby", "notebook", "--pylab", "inline", "--NotebookApp.ip=127.0.0.1", "--NotebookApp.port=" + port, "--NotebookApp.open_browser=False")
+os.execlp("ipython", "ipython", "notebook", "--profile", "julia", "--pylab", "inline", "--NotebookApp.ip=127.0.0.1", "--NotebookApp.port=" + port, "--NotebookApp.open_browser=False")

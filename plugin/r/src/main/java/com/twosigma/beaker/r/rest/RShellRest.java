@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,14 +83,14 @@ public class RShellRest {
   {
     File temp = File.createTempFile("BeakerRserveScript", ".r");
     String location = temp.getAbsolutePath();
-    BufferedWriter bw = new BufferedWriter(new FileWriter(location));
-    bw.write("library(Rserve)\n");
-    bw.write("run.Rserve(port=" + port + ")\n");
-    bw.close();
+    try (BufferedWriter bw = new BufferedWriter(new FileWriter(location))) {
+      bw.write("library(Rserve)\n");
+      bw.write("run.Rserve(port=" + port + ")\n");
+    }
     return location;
   }
 
-  public RServer startRserve()
+  private RServer startRserve()
     throws IOException, RserveException
   {
     int port = getPortFromCore();
@@ -133,12 +132,12 @@ public class RShellRest {
   }
 
   // set the port used for communication with the Core server
-  public void setCorePort(int corePort) 
+  public void setCorePort(int corePort)
     throws IOException
   {
     this.corePort = corePort;
   }
-  
+
   @POST
   @Path("getShell")
   public String getShell(@FormParam("shellid") String shellId)

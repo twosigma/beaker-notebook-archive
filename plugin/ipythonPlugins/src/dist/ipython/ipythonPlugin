@@ -17,17 +17,18 @@
 import os
 import sys
 
-#BEAKER_JULIA=ipython
+#BEAKER_IPYTHON=ipython
 
 #while [ -n "$1" ]
 #do
 #    case "$1" in
-#        --path*) BEAKER_JULIA="${1#??????}"; shift;;
+#        --path*) BEAKER_IPYTHON="${1#??????}"; shift;;
 #        *) break;;
 #    esac
 #done
 
 coreport = sys.argv.pop()
 port = sys.argv.pop()
+print("port=" + port)
 
-os.execlp("ipython", "ipython", "notebook", "--profile", "julia", "--pylab", "inline", "--NotebookApp.ip=127.0.0.1", "--NotebookApp.port=" + port, "--NotebookApp.open_browser=False")
+os.execlp("ipython", "ipython", "notebook", "--pylab", "inline", "--NotebookApp.ip=127.0.0.1", "--NotebookApp.port=" + port, "--NotebookApp.open_browser=False")

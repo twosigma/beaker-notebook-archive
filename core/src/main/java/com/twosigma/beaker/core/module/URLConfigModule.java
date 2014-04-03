@@ -24,6 +24,7 @@ import com.twosigma.beaker.core.rest.OutputLogRest;
 import com.twosigma.beaker.core.rest.RecentMenuRest;
 import com.twosigma.beaker.core.rest.SessionBackupRest;
 import com.twosigma.beaker.core.rest.PluginServiceLocatorRest;
+import com.twosigma.beaker.core.rest.PublishRest;
 import com.twosigma.beaker.core.rest.UtilRest;
 import com.twosigma.beaker.shared.servlet.GuiceCometdServlet;
 import java.util.HashMap;
@@ -38,7 +39,6 @@ public class URLConfigModule extends ServletModule {
   @Override
   protected void configureServlets() {
     bind(GuiceContainer.class);
-
     serve("/rest/*").with(GuiceContainer.class, new HashMap<String, String>() {
       {
         // put config that is normally in web.xml here
@@ -52,10 +52,20 @@ public class URLConfigModule extends ServletModule {
       }
     });
 
+    final String pluginsWebDir = System.getProperty("user.dir") + "/config/plugins";
+    serve("/plugins/*").with(new StaticResourceServlet(pluginsWebDir),
+        new HashMap<String, String>() {
+      {
+        put("cacheControl", "no-cache, max-age=0");
+        put("maxCacheSize", "0");
+      }
+    });
+
     bind(OutputLogService.class).asEagerSingleton();
 
     // REST binding
     bind(UtilRest.class);
+    bind(PublishRest.class);
     bind(PluginServiceLocatorRest.class);
     bind(FileIORest.class);
     bind(HttpProxyRest.class);

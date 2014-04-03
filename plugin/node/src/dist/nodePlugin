@@ -19,9 +19,7 @@ import sys
 
 coreport = sys.argv.pop()
 port = sys.argv.pop()
-print("coreport=" + coreport)
-print("port=" + port)
 
-os.chdir("..\\plugin\\r")
-cmd = "build\\install\\r\\bin\\r.bat"
-os.execl(cmd, cmd, port, coreport)
+os.chdir("../plugin/node")
+os.execlp("node", "node", "app.js", port, "127.0.0.1")
+print("Server started")
