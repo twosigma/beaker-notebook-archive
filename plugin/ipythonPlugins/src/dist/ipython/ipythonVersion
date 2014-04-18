@@ -15,11 +15,4 @@
 # limitations under the License.
 
 import os
-import sys
-
-coreport = sys.argv.pop()
-port = sys.argv.pop()
-
-os.chdir("../plugin/node")
-os.execlp("node", "node", "app/app.js", port, "127.0.0.1")
-print("Server started")
+os.execlp("ipython", "ipython", "--version")

@@ -26,7 +26,7 @@
   ]);
 
   bkNotebookEvaluators.directive('bkNotebookEvaluators', function(
-      evaluatorManager, bkCoreManager, menuPluginManager) {
+      evaluatorManager, bkCoreManager, bkBaseSessionModel, menuPluginManager) {
     return {
       restrict: 'E',
       templateUrl: "./template/bkNotebook_evaluators.html",
@@ -48,7 +48,7 @@
           return evaluatorManager.getKnownEvaluators();
         };
         $scope.addKnownEvaluator = function(name) {
-          $scope.newPluginUrl = evaluatorManager.nameToUrl[name];
+          $scope.newPluginNameOrUrl = name;
         };
         $scope.newMenuPluginUrl = "./plugin/menu/debug.js";
         $scope.addMenuPlugin = function() {
@@ -57,12 +57,21 @@
         $scope.getMenuPlugins = function() {
           return menuPluginManager.getMenuPlugins();
         };
-        $scope.newPluginUrl = "";
+        $scope.newPluginNameOrUrl = "";
         $scope.getPlugins = function() {
           return evaluatorManager.getPlugins();
         };
         $scope.addPlugin = function() {
-          evaluatorManager.setupPlugin($scope.newPluginUrl, true);
+          var pluginNameOrUrl = $scope.newPluginNameOrUrl;
+          var makeEvaluator = function(Shell) {
+            var newEvaluatorObj = {
+              name: Shell.prototype.pluginName,
+              plugin: pluginNameOrUrl
+            };
+            bkBaseSessionModel.getNotebookModel().evaluators.push(newEvaluatorObj);
+            bkCoreManager.addEvaluator(newEvaluatorObj, true);
+          };
+          evaluatorManager.setupPlugin(pluginNameOrUrl, makeEvaluator);
         };
       }
     };
@@ -118,7 +127,7 @@
   });
 
   bkNotebookEvaluators.directive('bkNotebookEvaluatorsAddEvaluatorPanel',
-      function(bkBaseSessionModel, evaluatorManager) {
+      function(bkBaseSessionModel, evaluatorManager, bkCoreManager) {
         return {
           restrict: 'E',
           templateUrl: './template/bkNotebook_addEvaluatorPanel.html',
@@ -135,7 +144,7 @@
               };
               $scope.newEvaluatorName = "";
               bkBaseSessionModel.getNotebookModel().evaluators.push(newEvaluator);
-              evaluatorManager.newEvaluator(newEvaluator, true);
+              bkCoreManager.addEvaluator(newEvaluator, true);
             };
           }
         };

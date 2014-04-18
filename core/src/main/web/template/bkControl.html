@@ -15,9 +15,8 @@
 -->
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
-    <div class="container">
+    <div class="container pull-left" style="margin-left: 10px; padding-left: 0px;">
       <a class="brand" href="./#/control" ng-click="gotoControlPanel($event)" eat-click>
-        <img src="./img/icon.png" width="24px" height="24px"></img>
         Beaker
       </a>
       <ul class="nav">
@@ -36,6 +35,12 @@
 <div class="container">
   <div class="row">
     <div class="span12">
+
+      <div ng-show='sessions.length == 0'>
+          <h1>Beaker <small>The data scientist's laboratory</small></h1>
+          <p>Click 'New Notebook' to get started writing code in Python, R, Julia, Groovy, JavaScript, and Ruby</p>
+      </div>        
+        
       <button class='btn' ng-click="newNotebook()">New Notebook</button>
       <!--<button class='btn' ng-click="openTutorial()">Tutorial</button>-->
       <br/><br/>
@@ -49,19 +54,19 @@
   <div class="row" ng-show="isAllowAnonymousTracking == null">
     <div class="span6 well">
       <p>
-        <b>Share anonymous usage info?</b>
+        <b>Track anonymous usage info?</b>
       </p>
 
       <p>
-        We would like to collect anonymous usage info to help improve our product. In the spirit of open software, the
-        data we log will be made publicly accessible.<br>
+        We would like to collect anonymous usage info to help improve our product. We may share this information 
+        with other parties, including, in the spirit of open software, by making it publicly accessible<br>
       </p>
 
       <p>
-        <a class="cursor_hand" ng-click="showWhatWeLog()">What will we log?</a>
+        <a href="http://beakernotebook.com/privacy">Privacy policy</a> - <a class="cursor_hand" ng-click="showWhatWeLog()">What will we log?</a>
       </p>
-      <button class="btn" ng-click="isAllowAnonymousTracking = false">No, don't share</button>
-      <button class="btn btn-primary" ng-click="isAllowAnonymousTracking = true">Yes, share my info</button>
+      <button class="btn" ng-click="isAllowAnonymousTracking = false">No, don't track</button>
+      <button class="btn btn-primary" ng-click="isAllowAnonymousTracking = true">Yes, track my info</button>
     </div>
 
   </div>
