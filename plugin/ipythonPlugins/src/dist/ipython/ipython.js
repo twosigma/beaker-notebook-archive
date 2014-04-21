@@ -1,5 +1,5 @@
 /*
- *  Copyright 2014 TWO SIGMA INVESTMENTS, LLC
+ *  Copyright 2014 TWO SIGMA OPEN SOURCE, LLC
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -232,9 +232,15 @@
     },
     autocomplete: function(code, cpos, cb) {
       var kernel = kernels[this.settings.shellID];
-      kernel.complete(code, cpos, {'complete_reply': function(reply) {
-        cb(reply.matches, reply.matched_text);
-      }});
+      if (ipyVersion1) {
+	kernel.complete(code, cpos, {'complete_reply': function(reply) {
+	    cb(reply.matches, reply.matched_text);
+	}});
+      } else {
+        kernel.complete(code, cpos, function(reply) {
+            cb(reply.content.matches, reply.matched_text);
+	});
+      }
     },
     interrupt: function() {
       this.cancelExecution();

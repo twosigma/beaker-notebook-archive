@@ -1,7 +1,22 @@
+/*
+ *  Copyright 2014 TWO SIGMA OPEN SOURCE, LLC
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 def versionHtml() {
   def buildTime = new Date().format("yyyy-MM-dd HH:mm z")
-  def gitSha = "git rev-parse --short HEAD".execute().text.trim()
-  return "<div>build time: " + buildTime + "<br>" + "git sha: " + gitSha + "<br></div>"
+  def gitDescribe = "git describe".execute().text.trim()
+  return "<div>build time: " + buildTime + "<br>" + "version: " + gitDescribe + "<br></div>\n"
 }
 
 def coreDir = file("../../../") // TODO, this can come from a property
@@ -12,7 +27,7 @@ task writeVersion << {
 
 task makeDist(type: Exec) {
   workingDir coreDir
-  commandLine 'cmd', '/c', '7za', 'a', 'beaker-notebook.zip', 'config', 'src/main/web', 'build/install/core', 'nginx', 'beaker.command.bat', '-xr!.gradle'
+  commandLine 'cmd', '/c', '7za', 'a', 'beaker-notebook.zip', 'config', 'src/main/web', 'build/install/core', 'nginx', 'beaker.command.bat', 'LICENSE', '-xr!.gradle'
 }
 
 makeDist.dependsOn(":writeVersion")
