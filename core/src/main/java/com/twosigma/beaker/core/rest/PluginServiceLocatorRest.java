@@ -48,6 +48,8 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jvnet.winp.WinProcess;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.fluent.Request;
 
 /**
  * This is the service that locates a plugin service. And a service will be started if the target
@@ -57,6 +59,8 @@ import org.jvnet.winp.WinProcess;
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
 public class PluginServiceLocatorRest {
+  private static final int RESTART_ENSURE_RETRY_MAX_COUNT = 600;
+  private static final int RESTART_ENSURE_RETRY_INTERVAL = 50; //ms
 
   private final String nginxDir;
   private final String nginxBinDir;
@@ -65,6 +69,7 @@ public class PluginServiceLocatorRest {
   private final String nginxExtraRules;
   private final String pluginDir;
   private final Integer portBase;
+  private final Integer servPort;
   private final Integer corePort;
   private final Integer reservedPortCount;
   private final Map<String, String> pluginLocations;
@@ -89,6 +94,7 @@ public class PluginServiceLocatorRest {
     this.nginxExtraRules = bkConfig.getNginxExtraRules();
     this.pluginDir = bkConfig.getPluginDirectory();
     this.portBase = bkConfig.getPortBase();
+    this.servPort = this.portBase + 1;
     this.corePort = this.portBase + 2;
     this.reservedPortCount = bkConfig.getReservedPortCount();
     this.pluginLocations = bkConfig.getPluginLocations();
@@ -177,8 +183,8 @@ public class PluginServiceLocatorRest {
 
     PluginConfig pConfig = this.plugins.get(pluginId);
     if (pConfig != null && pConfig.isStarted()) {
-      System.out.println("plugin service (" + pluginId + ")"
-          + "already started at" + pConfig.getBaseUrl());
+      System.out.println("plugin service " + pluginId +
+          " already started at" + pConfig.getBaseUrl());
       return buildResponse(pConfig.getBaseUrl(), false);
     }
 
@@ -189,7 +195,7 @@ public class PluginServiceLocatorRest {
       this.portSearchStart = pConfig.port + 1;
       this.plugins.put(pluginId, pConfig);
 
-      generateNginxConfig();
+      String restartId = generateNginxConfig();
       //Process restartproc = Runtime.getRuntime().exec(this.nginxServDir + "/restart_nginx",
       //  null, new File(this.nginxServDir));
       String nginxCommand = "nginx";
@@ -199,7 +205,16 @@ public class PluginServiceLocatorRest {
       Process restartproc = Runtime.getRuntime().exec(nginxCommand);
       startGobblers(restartproc, "restart-nginx-" + pluginId, null, null);
       restartproc.waitFor();
-      Thread.sleep(2500); // see Issue #97
+      // spin until restart is done
+      String url = "http://127.0.0.1:" + servPort + "/restart" + restartId;
+      try {
+        spinCheck(url, RESTART_ENSURE_RETRY_MAX_COUNT, RESTART_ENSURE_RETRY_INTERVAL);
+      } catch (Throwable t) {
+        System.err.println("Nginx restart time out plugin =" + pluginId);
+        throw new NginxRestartFailedException("nginx restart failed.\n"
+            + "url=" + url + "\n"
+            + "message=" + t.getMessage());
+      }
     }
 
     String fullCommand = command;
@@ -280,9 +295,33 @@ public class PluginServiceLocatorRest {
         .build();
   }
 
+  private static boolean spinCheck(String url, int countdown, int intervalMillis)
+      throws IOException, InterruptedException {
+
+    while (countdown > 0) {
+      if (Request.Get(url)
+          .execute()
+          .returnResponse()
+          .getStatusLine()
+          .getStatusCode() == HttpStatus.SC_OK) {
+        return true;
+      }
+      --countdown;
+      Thread.sleep(intervalMillis);
+    }
+    throw new RuntimeException("Spin check timed out");
+  }
+
   private static class PluginServiceNotFoundException extends WebApplicationException {
     public PluginServiceNotFoundException(String message) {
       super(Response.status(Responses.NOT_FOUND)
+          .entity(message).type("text/plain").build());
+    }
+  }
+
+   private static class NginxRestartFailedException extends WebApplicationException {
+    public NginxRestartFailedException(String message) {
+      super(Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
           .entity(message).type("text/plain").build());
     }
   }
@@ -296,7 +335,7 @@ public class PluginServiceLocatorRest {
     args.add(arg);
   }
 
-  private void generateNginxConfig() throws IOException, InterruptedException {
+  private String generateNginxConfig() throws IOException, InterruptedException {
 
     java.nio.file.Path confDir = Paths.get(this.nginxServDir, "conf");
     java.nio.file.Path logDir = Paths.get(this.nginxServDir, "logs");
@@ -317,17 +356,20 @@ public class PluginServiceLocatorRest {
       Files.createDirectory(htmlDir);
       Files.copy(Paths.get(this.nginxStaticDir + "/50x.html"),
                  Paths.get(htmlDir.toString() + "/50x.html"));
+      Files.copy(Paths.get(this.nginxStaticDir + "/present.html"),
+                 Paths.get(htmlDir.toString() + "/present.html"));
       //Files.copy(Paths.get(this.nginxStaticDir + "/favicon.ico"),
       //           Paths.get(htmlDir.toString() + "/favicon.ico"));
     }
 
+    String restartId = RandomStringUtils.random(10, true, true);
     String ngixConfig = this.nginxTemplate;
     StringBuilder pluginSection = new StringBuilder();
     for (PluginConfig pConfig : this.plugins.values()) {
       String nginxRule = pConfig.getNginxRules()
           .replace("%(port)s", Integer.toString(pConfig.getPort()))
           .replace("%(base_url)s", pConfig.getBaseUrl());
-      pluginSection.append(nginxRule);
+      pluginSection.append(nginxRule + "\n\n");
     }
     ngixConfig = ngixConfig.replace("%(plugin_section)s", pluginSection.toString());
     ngixConfig = ngixConfig.replace("%(extra_rules)s", this.nginxExtraRules);
@@ -338,6 +380,7 @@ public class PluginServiceLocatorRest {
     String tempDir = nginxClientTempDir.toFile().getPath();
     // Nginx interprets strings in unix style so backslash confuses it.
     ngixConfig = ngixConfig.replace("%(client_temp_dir)s", tempDir.replace("\\", "/"));
+    ngixConfig = ngixConfig.replace("%(restart_id)s", restartId);
 
     // write template to file
     java.nio.file.Path targetFile = Paths.get(this.nginxServDir, "conf/nginx.conf");
@@ -347,6 +390,8 @@ public class PluginServiceLocatorRest {
     try (PrintWriter out = new PrintWriter(targetFile.toFile())) {
       out.print(ngixConfig);
     }
+
+    return restartId;
   }
 
   private static int getNextAvailablePort(int start) {
