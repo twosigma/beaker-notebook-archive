@@ -112,7 +112,7 @@ define(function(require, exports, module) {
         startedIndicator: "Server Starting",
         recordOutput: "true"
         }).success(function (ret) {
-            serviceBase = ret;
+            serviceBase = bkHelper.serverUrl(_.last(ret.split("/")));
             var NodeShell = function (settings, doneCB) {
                 var self = this;
                 var setShellIdCB = function (id) {
