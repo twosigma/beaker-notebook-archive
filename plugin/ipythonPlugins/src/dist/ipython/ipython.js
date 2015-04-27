@@ -54,7 +54,7 @@ define(function(require, exports, module) {
         }
 
         var base = _.string.startsWith(serviceBase, "/") ? serviceBase : "/" + serviceBase;
-        bkHelper.httpGet("../beaker/rest/plugin-services/getIPythonPassword", {pluginId: PLUGIN_NAME})
+        bkHelper.httpGet(bkHelper.serverUrl("beaker/rest/plugin-services/getIPythonPassword"), {pluginId: PLUGIN_NAME})
         .success(function(result) {
           bkHelper.httpPost(base + "/login?next=%2E", {password: result})
           .success(function(result) {
@@ -350,7 +350,8 @@ define(function(require, exports, module) {
         startedIndicator: "NotebookApp] The IPython Notebook is running at: http://127.0.0.1:",
         startedIndicatorStream: "stderr"
       }).success(function(ret) {
-        serviceBase = ret;
+
+        serviceBase = bkHelper.serverUrl(_.last(ret.split("/")));
         var IPythonShell = function(settings, doneCB) {
           var self = this;
           var setShellIdCB = function(shellID) {
@@ -424,7 +425,7 @@ define(function(require, exports, module) {
       console.log("failed to load ipython libs");
     };
 
-    bkHelper.httpGet("../beaker/rest/plugin-services/getIPythonVersion",
+    bkHelper.httpGet(bkHelper.serverUrl("beaker/rest/plugin-services/getIPythonVersion"),
         {pluginId: PLUGIN_NAME, command: COMMAND})
         .success(function(result) {
           var backendVersion = result;
