@@ -20,10 +20,13 @@
 (function() {
   'use strict';
   var module = angular.module('bk.cometdUtils', []);
-  module.factory('cometdUtils', function () {
-    $.cometd.init({
+  module.factory('cometdUtils', ['$sessionStorage', function($sessionStorage) {
+    if ($sessionStorage.user) {
+      $.cometd.init("/beaker/" + $sessionStorage.user.id + "/cometd");
+    }
+    else {
       url: document.baseURI+'cometd/'
-    });
+    }
     var _statusListener;
     return {
       addConnectedStatusListener: function (cb) {
@@ -45,5 +48,5 @@
         return $.cometd.disconnect();
       }
     };
-  });
+  }]);
 })();
