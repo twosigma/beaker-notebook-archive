@@ -122,7 +122,7 @@
         return angularUtils.timeout(func,ms);
       },
       cancelTimeout: function(promise) {
-        return angularUtils.cancelTimeout(promise);  
+        return angularUtils.cancelTimeout(promise);
       },
       setServerRoot: function(url) {
         serverRoot = url;
@@ -185,10 +185,21 @@
             .error(deferred.reject);
         return deferred.promise;
       },
+      loadHttp: function(logicalUri) {
+        var logicalUrl = new URL(logicalUri);
+        if (logicalUrl.hostname == window.location.hostname &&
+            logicalUrl.port == window.location.port) {
+          var loadingUri = logicalUri;
+          var queryParams = {};
+        }
+        else {
+          var loadingUri = serverUrl("beaker/rest/http-proxy/load");
+          var queryParams = {url: logicalUrl};
+          var headers = {};
+        }
 
-      loadHttp: function(url) {
         var deferred = angularUtils.newDeferred();
-        angularUtils.httpGet(serverUrl("beaker/rest/http-proxy/load"), {url: url})
+        angularUtils.httpGet(loadingUri, queryParams, headers)
             .success(function(content) {
               if (!_.isString(content)) {
                 // angular $http auto-detects JSON response and deserialize it using a JSON parser
