@@ -13,6 +13,11 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
+# Archive of Beaker Notebook
+
+The last release of Beaker Notebook was [v1.7.1](https://github.com/twosigma/beaker-notebook/tree/1.7.1).
+This archive includes development past that, and into the first stages of BeakerX, as you can see below.
+
 
 # BeakerX: Beaker extensions for Jupyter
 
