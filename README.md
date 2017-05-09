@@ -15,7 +15,7 @@
 -->
 # Archive of Beaker Notebook
 
-The last release of Beaker Notebook was [v1.7.1](https://github.com/twosigma/beaker-notebook/tree/1.7.1).
+The last release of Beaker Notebook was [v1.7.1](https://github.com/twosigma/beaker-notebook-archive/tree/1.7.1).
 This archive includes development past that, and into the first stages of BeakerX, as you can see below.
 
 
